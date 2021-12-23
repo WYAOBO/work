@@ -201,7 +201,7 @@ synchronized保证有序性的原理，我们加synchronized后，依然会发�
 
 
 
-3、CAS理解
+## 3、CAS理解
 
  CAS即compare and swap，比较并交换。CAS 操作包含三个操作数 —— 内存位置（V）、预期原值（A）和新值(B)。 
 
