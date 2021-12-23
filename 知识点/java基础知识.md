@@ -52,34 +52,6 @@ RuntimeException及其子类都是unchecked exception。比如NPE空指针异常
 
  
 
-
-
-
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
  
 
  
@@ -227,11 +199,17 @@ synchronized保证可见性的原理，执行synchronized时，会对应lock原�
 
 synchronized保证有序性的原理，我们加synchronized后，依然会发生重排序，只不过，我们有同步代码块，可以保证只有一个线程执行同步代码中的代码。保证有序性；
 
- 
 
- 
 
- 
+3、CAS理解
+
+ CAS即compare and swap，比较并交换。CAS 操作包含三个操作数 —— 内存位置（V）、预期原值（A）和新值(B)。 
+
+如果内存位置的值与预期原值相匹配，那么处理器会自动将该位置值更新为新值 。否则，处理器不做任何操作。
+
+他是乐观锁的一种实现方式，CAS操作只是CPU一条指令，不会进行被中断，从而保证了CAS操作的原子性。
+
+lock大量使用CAS+自旋。因此根据CAS特性，lock建议使用在低锁冲突的情况下。目前java1.6以后，官方对synchronized做了大量的锁优化（偏向锁、自旋、轻量级锁）。因此在非必要的情况下，建议使用synchronized做同步操作。
 
  
 
@@ -264,6 +242,34 @@ final void checkForComodification()
 ```
 
 在add，remove等操作时，会对modCount++，以保证遍历时，list没有被修改。
+
+## 3、Hashmap的tostring（）实现方式
+
+```
+abstract class A{
+    //声明迭代器方法,具体实现交给不同的子类重写去具体实现。
+    abstract public int getnum();
+    //
+    public void tostring(){
+        int num=getnum();
+        System.out.println(num);
+    }
+}
+
+class B extends A{
+
+    @Override
+    public int getnum() {
+        return 2;
+    }
+
+    public static void main(String[] args) {
+        B b=new B();
+        //子类调用父类的tostring方法，里面再调用子类的getnum方法
+        b.tostring();
+    }
+}
+```
 
 
 
