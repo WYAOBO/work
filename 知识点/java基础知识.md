@@ -14,7 +14,7 @@ UTF-8：1、对于单字节的符号，字节的第一位设为 0，后面的7�
 
 2、对于n字节的符号 （n>1）,第一个字节的前 n 位都设为 1，第 n+1 位设为 0，后面字节的前两位一律设为 10，剩下的没有提及的二进制位，全部为这个符号的 Unicode 码 。
 
-![img](file:///C:/Users/LENOVO/AppData/Local/Temp/msohtmlclip1/01/clip_image002.jpg)
+![image-20211223181331535](java基础知识.assets/image-20211223181331535.png)
 
  
 
@@ -24,17 +24,15 @@ Stringbuilder是线程安全的，Stringbuffer是线程不安全的。
 
 ## 3、java中异常分类
 
- 
+ ![image-20211223181430677](java基础知识.assets/image-20211223181430677.png)
 
-![img](file:///C:/Users/LENOVO/AppData/Local/Temp/msohtmlclip1/01/clip_image004.jpg)
+1、Throwable有两个子类，Error和Exception。
 
-\1. Throwable有两个子类，Error和Exception。
+2、Error：错误，对于所有的编译时期的错误以及系统错误都是通过Error抛出的。这些错误表示故障发生于虚拟机自身、或者发生在虚拟机试图执行应用时，如Java虚拟机运行错误（Virtual MachineError）、类定义错误（NoClassDefFoundError）等。这些错误是不可查的，因为它们在应用程序的控制和处理能力之外，而且绝大多数是程序运行时不允许出现的状况。对于设计合理的应用程序来说，即使确实发生了错误，本质上也不应该试图去处理它所引起的异常状况。在 Java中，错误通过Error的子类描述。
 
-2.Error：错误，对于所有的编译时期的错误以及系统错误都是通过Error抛出的。这些错误表示故障发生于虚拟机自身、或者发生在虚拟机试图执行应用时，如Java虚拟机运行错误（Virtual MachineError）、类定义错误（NoClassDefFoundError）等。这些错误是不可查的，因为它们在应用程序的控制和处理能力之外，而且绝大多数是程序运行时不允许出现的状况。对于设计合理的应用程序来说，即使确实发生了错误，本质上也不应该试图去处理它所引起的异常状况。在 Java中，错误通过Error的子类描述。
+3、Exception：另外一个非常重要的异常子类。它规定的异常是程序本身可以处理的异常。异常和错误的区别是，异常是可以被处理的，而错误是没法处理的。 
 
-3.Exception：另外一个非常重要的异常子类。它规定的异常是程序本身可以处理的异常。异常和错误的区别是，异常是可以被处理的，而错误是没法处理的。 
-
-4.Checked Exception：可检查的异常，除了RuntimeException及其子类以外，都是checked exception。==所有checked exception都是需要在代码中处理的，即必须trycatch或者throws声明抛出。==它们的发生是可以预测的，正常的一种情况，可以合理的处理。比如IOException、NoSuchMethodException。
+4、Checked Exception：可检查的异常，除了RuntimeException及其子类以外，都是checked exception。==所有checked exception都是需要在代码中处理的，即必须trycatch或者throws声明抛出。==它们的发生是可以预测的，正常的一种情况，可以合理的处理。比如IOException、NoSuchMethodException。
 
 5.Unchecked Exception
 
@@ -213,9 +211,9 @@ class Data{
 
 
 
+![image-20211223181524284](java基础知识.assets/image-20211223181524284.png)
 
 
-![img](file:///C:/Users/LENOVO/AppData/Local/Temp/msohtmlclip1/01/clip_image006.jpg)
 
 以上代码会发生死锁，正是因为cnt变量在两个线程各自的缓存中，没有及时刷新会主存，因此只需要将cnt变量声明为violate即可解决问题。
 
@@ -243,7 +241,7 @@ synchronized保证有序性的原理，我们加synchronized后，依然会发�
 
 ## 1、hashmap扩容以后，元素下标怎么重新计算？
 
-![img](file:///C:/Users/LENOVO/AppData/Local/Temp/msohtmlclip1/01/clip_image008.jpg)
+![image-20211223181540059](java基础知识.assets/image-20211223181540059.png)
 
 因此，我们在扩充HashMap的时候，不需要像JDK1.7的实现那样重新计算hash，只需要看看原来的hash值新增的那个bit是1还是0就好了，是0的话索引没变，是1的话索引变成“原索引+oldCap”。
 
