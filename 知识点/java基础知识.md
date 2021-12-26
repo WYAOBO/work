@@ -66,7 +66,29 @@ RuntimeException及其子类都是unchecked exception。比如NPE空指针异常
 
 # 多线程
 
-## 1、Violate关键字作用？如何保证可见性？
+## 1、谈谈JMM
+
+JMM：java内存模型
+
+关于JMM一些线程同步的规定
+
+1、线程解锁前，必须把共享变量==立刻==刷新回主存。
+
+2、线程加锁前，必须读取主存中的最新值到工作内存。
+
+3、加锁和解锁必须是同一把锁。
+
+![image-20211226195315347](java基础知识.assets/image-20211226195315347.png)
+
+## 2、Violate关键字作用？如何保证可见性？
+
+1、保证可见性
+
+==2、不保证原子性==
+
+3、禁止指令重排   前后开启内存屏障
+
+
 
 所有线程的共享变量都存储在主内存中，每一个线程都有一个独有的工作内存，每个线程不直接操作在主内存中的变量，而是将主内存上变量的副本放进自己的工作内存中，只操作工作内存中的数据。当修改完毕后，再把修改后的结果放回到主内存中。每个线程都只操作自己工作内存中的变量，无法直接访问对方工作内存中的变量，线程间变量值的传递需要通过主内存来完成。
 
@@ -191,7 +213,7 @@ class Data{
 
  
 
-##  2、synchronized三大特性
+##  3、synchronized三大特性
 
 synchronized保证原子性的原理，synchronized保证只有一个线程拿到锁，能够进入同步代码块；
 
@@ -201,7 +223,7 @@ synchronized保证有序性的原理，我们加synchronized后，依然会发�
 
 
 
-## 3、CAS理解
+## 4、CAS理解
 
  CAS即compare and swap，比较并交换。CAS 操作包含三个操作数 —— 内存位置（V）、预期原值（A）和新值(B)。 
 
@@ -213,7 +235,85 @@ lock大量使用CAS+自旋。因此根据CAS特性，lock建议使用在低锁�
 
  
 
+## 5、java开启多线程的几种方式？
+
+1、继承Thread类，新建一个当前类对象，并且运行其start()方法
+
+2、实现Runnable接口，然后新建当前类对象，接着新建Thread对象时把当前类对象传进去，最后运行Thread对象的start()方法
+
+3、实现Callable接口，新建当前类对象，在新建FutureTask类对象时传入当前类对象，接着新建Thread类对象时传入FutureTask类对象，最后运行Thread对象的start()方法
+
+4、线程池
+
+
+
+```java
+  //Thread 类run方法,要么继承Thread重写，要么给target。
+  //Thred源码
+  public void run() {
+        if (target != null) {
+            target.run();
+        }
+    }
+    
+  //FutureTask同时实现了runnable接口和callable接口
+  //FutureTask同时实现了里的run调用了call()
+  //FutureTask源码
+  public void run() {
+            try {
+                Callable<V> c = callable;
+                if (c != null && state == NEW) {
+                    V result;
+                    boolean ran;
+                    try {
+                        result = c.call();
+                        ran = true;
+                    } catch (Throwable ex) {
+                        result = null;
+                        ran = false;
+                        setException(ex);
+                    }
+                    if (ran)
+                        set(result);
+                }
+            } finally {
+               runner = null;
+                int s = state;
+                if (s >= INTERRUPTING)
+                    handlePossibleCancellationInterrupt(s);
+            }
+        }
+```
+
+
+
  
+
+## 6、synchronized和lock区别
+
+1.首先synchronized是java内置关键字，在jvm层面，Lock是个java类；
+
+2.synchronized无法判断是否获取锁的状态，Lock可以判断是否获取到锁；
+
+3.synchronized会自动释放锁(a 线程执行完同步代码会释放锁 ；b 线程执行过程中发生异常会释放锁)，Lock需在finally中手工释放锁（unlock()方法释放锁），否则容易造成线程死锁；
+
+4.用synchronized关键字的两个线程1和线程2，如果当前线程1获得锁，线程2线程等待。如果线程1阻塞，线程2则会一直等待下去，而Lock锁就不一定会等待下去，如果尝试获取不到锁，线程可以不用一直等待就结束了；
+
+5.synchronized的锁可重入、不可中断、非公平，而Lock锁可重入、可判断、可公平（两者皆可）
+
+ 6.Lock锁适合大量同步的代码的同步问题，synchronized锁适合代码少量的同步问题。
+
+
+
+
+
+
+
+
+
+
+
+
 
 # 容器
 
