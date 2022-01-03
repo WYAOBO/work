@@ -256,7 +256,7 @@ lock大量使用CAS+自旋。因此根据CAS特性，lock建议使用在低锁�
         }
     }
     
-  //FutureTask同时实现了runnable接口和callable接口
+  //FutureTask实现了runnable接口，有个callable接口的成员变量
   //FutureTask同时实现了里的run调用了call()
   //FutureTask源码
   public void run() {
@@ -305,9 +305,132 @@ lock大量使用CAS+自旋。因此根据CAS特性，lock建议使用在低锁�
 
 
 
+## 7、为什么lamda表达式中的临时变量需要为final类型
+
+因为普通的临时变量为线程私有，存放在栈和堆中，切换线程就找不到了，而声明为final常量后，则为线程共享，不会出现问题。
 
 
 
+## 8、Threadcal作用和实现原理
+
+ThreadLocal类主要解决的就是让每个线程绑定自己的值，可以将ThreadLocal类形象的比喻成存放数据的盒子，盒子中可以存储每个线程的私有数据。
+
+==实现原理==
+
+Thread定义了ThreadLocalMap类型变量。  ThreadLocalMap以 ThreadLocal和object作为键值对的hashmap
+
+```java
+public class Thread implements Runnable {
+    //......
+    //与此线程有关的ThreadLocal值。由ThreadLocal类维护
+    ThreadLocal.ThreadLocalMap threadLocals = null;
+
+    //与此线程有关的InheritableThreadLocal值。由InheritableThreadLocal类维护
+    ThreadLocal.ThreadLocalMap inheritableThreadLocals = null;
+    //......
+}
+```
+
+```java
+public void set(T value) {
+    //获取当前线程
+    Thread t = Thread.currentThread();
+    //获取当前线程的ThreadLocalMap
+    ThreadLocalMap map = getMap(t);
+    //如果map已经初始化
+    if (map != null)
+        //这里得this指代调用set函数的threadlocal变量。
+        //比如num.set(1),this就指代num
+        map.set(this, value);
+    else
+        createMap(t, value);
+}
+ThreadLocalMap getMap(Thread t) {
+    return t.threadLocals;
+}
+```
+
+所以threadlocal变量是存在在每个线程的内部的hashmap中，==并且以threadlocal变量为键==，实现不同local变量的存放
+
+threadlocal实现原理图
+
+![image-20220103144011835](java基础知识.assets/image-20220103144011835.png)
+
+我们可以看到ThreadLocal1和ThreadLocal2实际上是分布式存在于每个线程的threadlocalmap内部。
+
+
+
+## 9、创建线程池的方式
+
+**方式一：通过 Executor 框架的工具类 Executors 来实现**
+
+**FixedThreadPool** ： 该方法返回一个固定线程数量的线程池。该线程池中的线程数量始终不变。当有一个新的任务提交时，线程池中若有空闲线程，则立即执行。若没有，则新的任务会被暂存在一个任务队列中，待有线程空闲时，便处理在任务队列中的任务。
+
+**SingleThreadExecutor：** 方法返回一个只有一个线程的线程池。若多余一个任务被提交到该线程池，任务会被保存在一个任务队列中，待线程空闲，按先入先出的顺序执行队列中的任务。
+
+**CachedThreadPool：** 该方法返回一个可根据实际情况调整线程数量的线程池。线程池的线程数量不确定，但若有空闲线程可以复用，则会优先使用可复用的线程。若所有线程均在工作，又有新的任务提交，则会创建新的线程处理任务。所有线程在当前任务执行完毕后，将返回线程池进行复用。
+
+**ScheduledThreadPool：**方法返回一个能够定时执行任务的线程池。
+
+==Executors 返回线程池对象的弊端如下：==
+
+- **FixedThreadPool 和 SingleThreadExecutor** ： 允许请求的队列长度为 Integer.MAX_VALUE ，可能堆积大量的请求，从而导致 OOM。
+- **CachedThreadPool 和 ScheduledThreadPool** ： 允许创建的线程数量为 Integer.MAX_VALUE ，可能会创建大量线程，从而导致 OOM。
+
+**方式二：通过ThreadPoolExecutor 类构造 **
+
+![image-20220103150938326](java基础知识.assets/image-20220103150938326.png)
+
+## 10、ThreadPoolExecutor 的七大参数
+
+```java
+/**
+ * 用给定的初始参数创建一个新的ThreadPoolExecutor。
+ */
+public ThreadPoolExecutor(int corePoolSize,
+                      int maximumPoolSize,
+                      long keepAliveTime,
+                      TimeUnit unit,
+                      BlockingQueue<Runnable> workQueue,
+                      ThreadFactory threadFactory,
+                      RejectedExecutionHandler handler) {
+    if (corePoolSize < 0 ||
+        maximumPoolSize <= 0 ||
+        maximumPoolSize < corePoolSize ||
+        keepAliveTime < 0)
+            throw new IllegalArgumentException();
+    if (workQueue == null || threadFactory == null || handler == null)
+        throw new NullPointerException();
+    this.corePoolSize = corePoolSize;
+    this.maximumPoolSize = maximumPoolSize;
+    this.workQueue = workQueue;
+    this.keepAliveTime = unit.toNanos(keepAliveTime);
+    this.threadFactory = threadFactory;
+    this.handler = handler;
+}
+```
+
++ **corePoolSize :** 核心线程数定义了最小可以同时运行的线程数量。
++ **maximumPoolSize :** 当队列中存放的任务达到队列容量的时候，当前可以同时运行的线程数量变为最大线程数。
++ **workQueue:** 当新任务来的时候会先判断当前运行的线程数量是否达到核心线程数，如果达到的话，新任务就会被存放在队列中。
++ **keepAliveTime**:当线程池中的线程数量大于 corePoolSize的时候，如果这时没有新的任务提交，核心线程外的线程不会立即销毁，而是会等待，直到等待的时间超过了 keepAliveTime才会被回收销毁；
++ **unit** : keepAliveTime 参数的时间单位。
++ **threadFactory**:executor 创建新线程的时候会用到。
++ **handler** :拒绝策略。
+
+==线程池执行策略==
+
+![image-20220103152017984](java基础知识.assets/image-20220103152017984.png)
+
+## 11、线程池的四大拒绝策略
+
+**AbortPolicy：**抛出 RejectedExecutionException异常来拒绝新任务的处理。
+
+**CallerRunsPolicy：**调用执行自己的线程运行任务，也就是直接在调用`execute`方法的线程中运行(`run`)被拒绝的任务，如果执行程序已关闭，则会丢弃该任务。因此这种策略会降低对于新任务提交速度，影响程序的整体性能。
+
+**DiscardPolicy：** 不处理新任务，直接丢弃掉。
+
+**DiscardOldestPolicy：** 此策略将丢弃最早的未处理的任务请求。
 
 
 
