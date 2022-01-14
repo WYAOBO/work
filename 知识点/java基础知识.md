@@ -24,19 +24,16 @@ Stringbuilder是线程安全的，Stringbuffer是线程不安全的。
 
 ## 3、java中异常分类
 
- ![image-20211223181430677](java基础知识.assets/image-20211223181430677.png)
+![image-20220105151751356](java基础知识.assets/image-20220105151751356.png)
 
-1、Throwable有两个子类，Error和Exception。
+在 Java 中，所有的异常都有一个共同的祖先 `java.lang` 包中的 `Throwable` 类。`Throwable` 类有两个重要的子类 `Exception`（异常）和 `Error`（错误）。`Exception` 能被程序本身处理(`try-catch`)， `Error` 是无法处理的(只能尽量避免)。
 
-2、Error：错误，对于所有的编译时期的错误以及系统错误都是通过Error抛出的。这些错误表示故障发生于虚拟机自身、或者发生在虚拟机试图执行应用时，如Java虚拟机运行错误（Virtual MachineError）、类定义错误（NoClassDefFoundError）等。这些错误是不可查的，因为它们在应用程序的控制和处理能力之外，而且绝大多数是程序运行时不允许出现的状况。对于设计合理的应用程序来说，即使确实发生了错误，本质上也不应该试图去处理它所引起的异常状况。在 Java中，错误通过Error的子类描述。
+`Exception` 和 `Error` 二者都是 Java 异常处理的重要子类，各自都包含大量子类。
 
-3、Exception：另外一个非常重要的异常子类。它规定的异常是程序本身可以处理的异常。异常和错误的区别是，异常是可以被处理的，而错误是没法处理的。 
+- **`Exception`** :程序本身可以处理的异常，可以通过 `catch` 来进行捕获。`Exception` 又可以分为 受检查异常(==必须处理==) 和 不受检查异常(==可以不处理==)。
+- **`Error`** ：`Error` 属于程序无法处理的错误 ，我们没办法通过 `catch` 来进行捕获 。例如，Java 虚拟机运行错误（`Virtual MachineError`）、虚拟机内存不够错误(`OutOfMemoryError`)、类定义错误（`NoClassDefFoundError`）等 。这些异常发生时，Java 虚拟机（JVM）一般会选择线程终止。
 
-4、Checked Exception：可检查的异常，除了RuntimeException及其子类以外，都是checked exception。==所有checked exception都是需要在代码中处理的，即必须trycatch或者throws声明抛出。==它们的发生是可以预测的，正常的一种情况，可以合理的处理。比如IOException、NoSuchMethodException。
 
-5.Unchecked Exception
-
-RuntimeException及其子类都是unchecked exception。比如NPE空指针异常，除数为0的算数异常ArithmeticException等等，这种异常是运行时发生，无法预先捕捉处理的。Error也是unchecked exception，也是无法预先处理的。
 
 ## 4、为什么java中泛型不能用基本数据类型？
 
