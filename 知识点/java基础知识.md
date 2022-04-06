@@ -171,7 +171,7 @@ public class demo01 {
 
 class Data{
 
-  public static volatile int cnt=0;
+  public static  int cnt=0;
 
   public synchronized void increase() throws InterruptedException {
 
@@ -498,3 +498,12 @@ class B extends A{
 
 
 
+## 4、ConcurrentHashMap线程安全的实现方式？
+
+==JDK1.7== 
+
+首先将数据分为一段一段的存储，然后给每一段数据配一把锁，当一个线程占用锁访问其中一个段数据时，其他段的数据也能被其他线程访问。
+
+==JDK1.8==
+
+`ConcurrentHashMap` 取消了 `Segment` 分段锁，采用 CAS 和 `synchronized` 来保证并发安全。`synchronized` 只锁定当前链表或红黑二叉树的首节点，这样只要 hash 不冲突，就不会产生并发，效率又提升 N 倍。
